@@ -1,0 +1,162 @@
+.app {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: "Hiragino Sans", "Meiryo", sans-serif;
+}
+
+.app h1 {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.toolbar button {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.toolbar button:hover {
+  background: #e8e8e8;
+}
+
+.folder-path {
+  font-size: 13px;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  text-align: center;
+  font-size: 1.1rem;
+  padding: 12px;
+  margin-bottom: 16px;
+  color: #555;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.nav-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-buttons button {
+  padding: 8px 20px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.nav-buttons button:hover:not(:disabled) {
+  background: #e8e8e8;
+}
+
+.nav-buttons button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.problem-number {
+  font-size: 1.2rem;
+  font-weight: bold;
+  min-width: 120px;
+  text-align: center;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.action-buttons button {
+  padding: 10px 18px;
+  border: 2px solid #4a90d9;
+  border-radius: 8px;
+  background: #fff;
+  color: #4a90d9;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.15s;
+}
+
+.action-buttons button:hover {
+  background: #4a90d9;
+  color: #fff;
+}
+
+.board-display {
+  background: #fdf6e3;
+  border: 2px solid #b58900;
+  border-radius: 8px;
+  padding: 16px;
+  font-family: "MS Gothic", "Noto Sans Mono CJK JP", monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: pre;
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.shortcuts-help {
+  text-align: center;
+  font-size: 12px;
+  color: #888;
+  margin-top: 8px;
+}
+
+.shortcuts-help kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #f7f7f7;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .app h1 { color: #eee; }
+  .toolbar { background: #2a2a2a; }
+  .toolbar button { background: #3a3a3a; border-color: #555; color: #ddd; }
+  .toolbar button:hover { background: #4a4a4a; }
+  .folder-path { color: #aaa; }
+  .status { color: #bbb; }
+  .nav-buttons button { background: #3a3a3a; border-color: #555; color: #ddd; }
+  .nav-buttons button:hover:not(:disabled) { background: #4a4a4a; }
+  .action-buttons button { background: #2a2a2a; border-color: #5a9fd4; color: #5a9fd4; }
+  .action-buttons button:hover { background: #5a9fd4; color: #1a1a1a; }
+  .board-display { background: #2a2520; border-color: #8a6800; color: #e0d0a0; }
+  .shortcuts-help { color: #777; }
+  .shortcuts-help kbd { background: #333; border-color: #555; color: #aaa; }
+}
