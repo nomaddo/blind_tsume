@@ -1,7 +1,6 @@
 // tsshogiを使ったKIF読み込み・盤面解析モジュール
 
-import { importKIF, type ImmutableRecord, Color, type ImmutablePosition, type Piece, Square } from "tsshogi";
-import { positionToYomi, pieceToYomi, countToYomi } from "./notation";
+import { importKIF, type ImmutableRecord, Color, type ImmutablePosition, type Piece, Square, PieceType } from "tsshogi";
 
 /** 駒種を表すCSA形式コードに変換 */
 function pieceTypeToCSA(piece: Piece): string {
@@ -36,14 +35,12 @@ export interface PieceReading {
   suji: number;
   dan: number;
   pieceCode: string;
-  yomi: string; // "よんよん ぎん" のような完全な読み
 }
 
 /** 読み上げ用の持ち駒情報 */
 export interface HandReading {
   pieceCode: string;
   count: number;
-  yomi: string; // "きん にまい" のような読み
 }
 
 /** KIF文字列をパースしてRecordを返す */
@@ -64,8 +61,7 @@ export function getAttackerPieces(position: ImmutablePosition): PieceReading[] {
       const piece = position.board.at(new Square(x, y));
       if (piece && piece.color === Color.BLACK && piece.type !== "king") {
         const code = pieceTypeToCSA(piece);
-        const yomi = `${positionToYomi(x, y)} ${pieceToYomi(code)}`;
-        pieces.push({ suji: x, dan: y, pieceCode: code, yomi });
+        pieces.push({ suji: x, dan: y, pieceCode: code });
       }
     }
   }
@@ -80,8 +76,7 @@ export function getDefenderPieces(position: ImmutablePosition): PieceReading[] {
       const piece = position.board.at(new Square(x, y));
       if (piece && piece.color === Color.WHITE) {
         const code = pieceTypeToCSA(piece);
-        const yomi = `${positionToYomi(x, y)} ${pieceToYomi(code)}`;
-        pieces.push({ suji: x, dan: y, pieceCode: code, yomi });
+        pieces.push({ suji: x, dan: y, pieceCode: code });
       }
     }
   }
@@ -94,45 +89,23 @@ export function getHandPieces(position: ImmutablePosition): HandReading[] {
   const readings: HandReading[] = [];
 
   const pieceTypes = [
-    { type: "rook", code: "HI" },
-    { type: "bishop", code: "KA" },
-    { type: "gold", code: "KI" },
-    { type: "silver", code: "GI" },
-    { type: "knight", code: "KE" },
-    { type: "lance", code: "KY" },
-    { type: "pawn", code: "FU" },
+    { type: PieceType.ROOK, code: "HI" },
+    { type: PieceType.BISHOP, code: "KA" },
+    { type: PieceType.GOLD, code: "KI" },
+    { type: PieceType.SILVER, code: "GI" },
+    { type: PieceType.KNIGHT, code: "KE" },
+    { type: PieceType.LANCE, code: "KY" },
+    { type: PieceType.PAWN, code: "FU" },
   ] as const;
 
   for (const { type, code } of pieceTypes) {
     const count = hand.count(type);
     if (count > 0) {
-      const yomi = `${pieceToYomi(code)} ${countToYomi(count)}`;
-      readings.push({ pieceCode: code, count, yomi });
+      readings.push({ pieceCode: code, count });
     }
   }
 
   return readings;
 }
 
-/** 詰将棋の全情報を読み上げテキストとして生成 */
-export function generateFullReading(kifText: string): {
-  attacker: string;
-  defender: string;
-  hand: string;
-} {
-  const record = parseKIF(kifText);
-  const position = record.position;
 
-  const attackerPieces = getAttackerPieces(position);
-  const defenderPieces = getDefenderPieces(position);
-  const handPieces = getHandPieces(position);
-
-  const attackerText = "攻め方 " + attackerPieces.map((p) => p.yomi).join(" ");
-  const defenderText = "玉方 " + defenderPieces.map((p) => p.yomi).join(" ");
-  const handText =
-    handPieces.length > 0
-      ? "持ち駒は " + handPieces.map((p) => p.yomi).join(" ") + " です"
-      : "持ち駒は ありません";
-
-  return { attacker: attackerText, defender: defenderText, hand: handText };
-}

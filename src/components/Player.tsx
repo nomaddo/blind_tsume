@@ -15,7 +15,8 @@ import {
   buildHandSegments,
   buildFullSegments,
 } from "../lib/audioPlayer";
-import { exportKIF, type ImmutableRecord } from "tsshogi";
+import { type ImmutableRecord } from "tsshogi";
+import BoardSvg from "./BoardSvg";
 import { decodeText } from "../lib/encoding";
 
 /** KIFファイルの情報 */
@@ -90,7 +91,6 @@ export default function Player() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [folderPath, setFolderPath] = useState<string | null>(null);
   const [showBoard, setShowBoard] = useState(false);
-  const [boardText, setBoardText] = useState("");
   const [statusMessage, setStatusMessage] = useState("フォルダを選択してください");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -112,7 +112,6 @@ export default function Player() {
         setAttackerPieces(getAttackerPieces(pos));
         setDefenderPieces(getDefenderPieces(pos));
         setHandPieces(getHandPieces(pos));
-        setBoardText(exportKIF(rec));
         setShowBoard(false);
         setStatusMessage(`${index + 1} / ${files.length} : ${file.name}`);
       } catch (e) {
@@ -317,17 +316,23 @@ export default function Player() {
             </button>
           </div>
 
-          {showBoard && (
-            <pre className="board-display">{boardText}</pre>
-          )}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              visibility: showBoard && record ? "visible" : "hidden",
+            }}
+          >
+            {record && <BoardSvg position={record.position} />}
+          </div>
 
           <div className="shortcuts-help">
             <p>
-              <kbd>Space</kbd>/<kbd>→</kbd> 次の問題　
-              <kbd>←</kbd> 前の問題　
-              <kbd>A</kbd> 攻め方　
-              <kbd>S</kbd> 玉方　
-              <kbd>D</kbd> 持ち駒　
+              <kbd>Space</kbd>/<kbd>→</kbd> 次の問題
+              <kbd>←</kbd> 前の問題
+              <kbd>A</kbd> 攻め方
+              <kbd>S</kbd> 玉方
+              <kbd>D</kbd> 持ち駒
               <kbd>F</kbd> 盤面表示
             </p>
           </div>

@@ -4,7 +4,6 @@ import {
   getAttackerPieces,
   getDefenderPieces,
   getHandPieces,
-  generateFullReading,
 } from "./kifReader";
 
 // SPEC.mdに記載されている詰将棋の例
@@ -44,7 +43,7 @@ describe("getAttackerPieces", () => {
     expect(pieces[0].suji).toBe(4);
     expect(pieces[0].dan).toBe(4);
     expect(pieces[0].pieceCode).toBe("GI");
-    expect(pieces[0].yomi).toBe("よんよん ぎん");
+
   });
 });
 
@@ -56,7 +55,7 @@ describe("getDefenderPieces", () => {
     expect(pieces[0].suji).toBe(4);
     expect(pieces[0].dan).toBe(2);
     expect(pieces[0].pieceCode).toBe("OU");
-    expect(pieces[0].yomi).toBe("よんにー ぎょく");
+
   });
 });
 
@@ -67,15 +66,6 @@ describe("getHandPieces", () => {
     expect(hand).toHaveLength(1);
     expect(hand[0].pieceCode).toBe("KI");
     expect(hand[0].count).toBe(2);
-    expect(hand[0].yomi).toBe("きん にまい");
   });
 });
 
-describe("generateFullReading", () => {
-  it("SPEC.mdの例に一致する読み上げテキストを生成", () => {
-    const reading = generateFullReading(SAMPLE_KIF);
-    expect(reading.attacker).toBe("攻め方 よんよん ぎん");
-    expect(reading.defender).toBe("玉方 よんにー ぎょく");
-    expect(reading.hand).toBe("持ち駒は きん にまい です");
-  });
-});
