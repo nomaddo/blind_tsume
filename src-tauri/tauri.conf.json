@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "詰将棋読み上げ",
-        "width": 800,
-        "height": 600,
+        "minWidth": 1000,
+        "minHeight": 700,
         "resizable": true,
         "fullscreen": false
       }

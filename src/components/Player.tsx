@@ -57,32 +57,12 @@ async function selectFolder(): Promise<string | null> {
   return typeof result === "string" ? result : null;
 }
 
-/** 設定の保存・読み込み */
-async function saveLastFolder(path: string): Promise<void> {
-  if (isTauri()) {
-    try {
-      const { load } = await import("@tauri-apps/plugin-store");
-      const store = await load("settings.json");
-      await store.set("lastFolder", path);
-      await store.save();
-    } catch {
-      // プラグイン未設定時は無視
-    }
-  } else {
-    localStorage.setItem("lastFolder", path);
-  }
+/** 設定の保存・読み込み（localStorage を使用） */
+function saveLastFolder(path: string): void {
+  localStorage.setItem("lastFolder", path);
 }
 
-async function loadLastFolder(): Promise<string | null> {
-  if (isTauri()) {
-    try {
-      const { load } = await import("@tauri-apps/plugin-store");
-      const store = await load("settings.json");
-      return (await store.get<string>("lastFolder")) ?? null;
-    } catch {
-      return null;
-    }
-  }
+function loadLastFolder(): string | null {
   return localStorage.getItem("lastFolder");
 }
 
@@ -124,9 +104,10 @@ export default function Player() {
   // 初回ロード: 前回のフォルダを復元
   useEffect(() => {
     (async () => {
-      const last = await loadLastFolder();
-      if (last && isTauri()) {
-        setFolderPath(last);
+      const last = loadLastFolder();
+      if (!last) return;
+      setFolderPath(last);
+      if (isTauri()) {
         const files = await loadKifFiles(last);
         if (files.length > 0) {
           setKifFiles(files);
@@ -142,7 +123,7 @@ export default function Player() {
       const path = await selectFolder();
       if (!path) return;
       setFolderPath(path);
-      await saveLastFolder(path);
+      saveLastFolder(path);
       const files = await loadKifFiles(path);
       setKifFiles(files);
       setCurrentIndex(0);
@@ -263,80 +244,104 @@ export default function Player() {
   }, [currentIndex, attackerPieces, defenderPieces, handPieces, goToKif]);
 
   return (
-    <div className="player">
-      <div className="toolbar">
-        <button onClick={handleSelectFolder}>フォルダ選択</button>
-        <span className="folder-path">{folderPath ?? ""}</span>
-        {/* Web版用の隠しファイル入力 */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          /* @ts-expect-error webkitdirectory is not in standard types */
-          webkitdirectory=""
-          multiple
-          style={{ display: "none" }}
-          onChange={handleFileInput}
-        />
+    <div className="player-shell">
+      <div className="top-row">
+        <section className="hero-card">
+          <div className="hero-actions hero-actions-compact">
+            <button className="primary-button" onClick={handleSelectFolder}>
+              ディレクトリを開く
+            </button>
+            <span className="folder-path">{folderPath ?? "未選択"}</span>
+          </div>
+
+          {/* Web版用の隠しファイル入力 */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            /* @ts-expect-error webkitdirectory is not in standard types */
+            webkitdirectory=""
+            multiple
+            style={{ display: "none" }}
+            onChange={handleFileInput}
+          />
+        </section>
+
+        <section className="status-card">
+          <p className="status-message">{statusMessage}</p>
+        </section>
       </div>
 
-      <div className="status">{statusMessage}</div>
-
       {record && (
-        <div className="controls">
-          <div className="nav-buttons">
-            <button
-              onClick={() => goToKif(currentIndex - 1)}
-              disabled={currentIndex <= 0}
-            >
-              ← 前へ
-            </button>
-            <span className="problem-number">
-              問題 {currentIndex + 1} / {kifFiles.length}
-            </span>
-            <button
-              onClick={() => goToKif(currentIndex + 1)}
-              disabled={currentIndex >= kifFiles.length - 1}
-            >
-              次へ →
-            </button>
-          </div>
+        <div className="content-grid">
+          <section className="control-card">
+            <div className="nav-buttons">
+              <button
+                onClick={() => goToKif(currentIndex - 1)}
+                disabled={currentIndex <= 0}
+              >
+                ← 前へ
+              </button>
+              <span className="problem-number">
+                問題 {currentIndex + 1} / {kifFiles.length}
+              </span>
+              <button
+                onClick={() => goToKif(currentIndex + 1)}
+                disabled={currentIndex >= kifFiles.length - 1}
+              >
+                次へ →
+              </button>
+            </div>
 
-          <div className="action-buttons">
-            <button onClick={() => playSegments(buildAttackerSegments(attackerPieces))}>
-              [A] 攻め方
-            </button>
-            <button onClick={() => playSegments(buildDefenderSegments(defenderPieces))}>
-              [S] 玉方
-            </button>
-            <button onClick={() => playSegments(buildHandSegments(handPieces))}>
-              [D] 持ち駒
-            </button>
-            <button onClick={() => setShowBoard((prev) => !prev)}>
-              [F] {showBoard ? "盤面を隠す" : "盤面を表示"}
-            </button>
-          </div>
+            <div className="action-buttons">
+              <button onClick={() => playSegments(buildAttackerSegments(attackerPieces))}>
+                <span className="shortcut">A</span>
+                攻め方
+              </button>
+              <button onClick={() => playSegments(buildDefenderSegments(defenderPieces))}>
+                <span className="shortcut">S</span>
+                玉方
+              </button>
+              <button onClick={() => playSegments(buildHandSegments(handPieces))}>
+                <span className="shortcut">D</span>
+                持ち駒
+              </button>
+              <button onClick={() => setShowBoard((prev) => !prev)}>
+                <span className="shortcut">F</span>
+                {showBoard ? "盤面を隠す" : "盤面を表示"}
+              </button>
+            </div>
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              visibility: showBoard && record ? "visible" : "hidden",
-            }}
-          >
-            {record && <BoardSvg position={record.position} />}
-          </div>
+            <div className="shortcuts-help">
+              <p>
+                <kbd>Space</kbd>/<kbd>→</kbd> 次の問題
+                <kbd>←</kbd> 前の問題
+                <kbd>A</kbd> 攻め方
+                <kbd>S</kbd> 玉方
+                <kbd>D</kbd> 持ち駒
+                <kbd>F</kbd> 盤面表示
+              </p>
+            </div>
+          </section>
 
-          <div className="shortcuts-help">
-            <p>
-              <kbd>Space</kbd>/<kbd>→</kbd> 次の問題
-              <kbd>←</kbd> 前の問題
-              <kbd>A</kbd> 攻め方
-              <kbd>S</kbd> 玉方
-              <kbd>D</kbd> 持ち駒
-              <kbd>F</kbd> 盤面表示
-            </p>
-          </div>
+          <section className={`board-card ${showBoard ? "is-visible" : ""}`}>
+            <div className="board-stage">
+              {showBoard ? (
+                <BoardSvg position={record.position} />
+              ) : (
+                <div className="board-placeholder">
+                  <p>盤面は現在非表示です。</p>
+                  <span>ボタンまたは <kbd>F</kbd> で表示できます。</span>
+                </div>
+              )}
+            </div>
+          </section>
         </div>
+      )}
+
+      {!record && (
+        <section className="empty-state-card">
+          <p>ディレクトリを開いてください。</p>
+        </section>
       )}
     </div>
   );

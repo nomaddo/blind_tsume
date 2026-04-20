@@ -1,18 +1,36 @@
 :root {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic UI", sans-serif;
   line-height: 1.5;
-  color: #213547;
-  background-color: #ffffff;
+  color: #1e293b;
+  background:
+    radial-gradient(circle at top, rgba(244, 114, 30, 0.2), transparent 30%),
+    linear-gradient(180deg, #fff9f1 0%, #f6efe4 48%, #efe6d7 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #e0e0e0;
-    background-color: #1a1a1a;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
 }
 
 body {
   margin: 0;
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+#root {
   min-height: 100vh;
 }

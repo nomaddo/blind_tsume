@@ -156,16 +156,17 @@ export default function BoardSvg({ position }: Props) {
     ));
 
     return (
-        <div style={{ display: "inline-block", userSelect: "none" }}>
+        <div className="board-figure">
             <HandLabel
                 hand={position.hand(Color.WHITE)}
                 label="玉方持ち駒"
                 color="#888"
             />
             <svg
-                width={svgWidth}
-                height={svgHeight}
-                style={{ display: "block", border: "1px solid #5a3a10" }}
+                viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+                preserveAspectRatio="xMidYMid meet"
+                className="board-svg"
+                aria-label="将棋盤"
             >
                 {fileLabels}
                 {cells}
