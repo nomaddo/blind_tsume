@@ -25,6 +25,9 @@ interface KifFile {
   content: string;
 }
 
+const LAST_FOLDER_KEY = "lastFolder";
+const SETTINGS_STORE_FILE = "settings.json";
+
 /** Tauriが利用可能かどうか */
 function isTauri(): boolean {
   return "__TAURI__" in window;
@@ -57,13 +60,40 @@ async function selectFolder(): Promise<string | null> {
   return typeof result === "string" ? result : null;
 }
 
-/** 設定の保存・読み込み（localStorage を使用） */
-function saveLastFolder(path: string): void {
-  localStorage.setItem("lastFolder", path);
+/** 設定の保存・読み込み */
+async function saveLastFolder(path: string): Promise<void> {
+  if (isTauri()) {
+    try {
+      const { load } = await import("@tauri-apps/plugin-store");
+      const store = await load(SETTINGS_STORE_FILE);
+      await store.set(LAST_FOLDER_KEY, path);
+      await store.save();
+      localStorage.setItem(LAST_FOLDER_KEY, path);
+      return;
+    } catch (error) {
+      console.warn("failed to save last folder to tauri store", error);
+    }
+  }
+
+  localStorage.setItem(LAST_FOLDER_KEY, path);
 }
 
-function loadLastFolder(): string | null {
-  return localStorage.getItem("lastFolder");
+async function loadLastFolder(): Promise<string | null> {
+  if (isTauri()) {
+    try {
+      const { load } = await import("@tauri-apps/plugin-store");
+      const store = await load(SETTINGS_STORE_FILE);
+      const savedFolder = await store.get<string>(LAST_FOLDER_KEY);
+      if (savedFolder) {
+        localStorage.setItem(LAST_FOLDER_KEY, savedFolder);
+        return savedFolder;
+      }
+    } catch (error) {
+      console.warn("failed to load last folder from tauri store", error);
+    }
+  }
+
+  return localStorage.getItem(LAST_FOLDER_KEY);
 }
 
 export default function Player() {
@@ -104,14 +134,18 @@ export default function Player() {
   // 初回ロード: 前回のフォルダを復元
   useEffect(() => {
     (async () => {
-      const last = loadLastFolder();
+      const last = await loadLastFolder();
       if (!last) return;
       setFolderPath(last);
       if (isTauri()) {
-        const files = await loadKifFiles(last);
-        if (files.length > 0) {
-          setKifFiles(files);
-          loadCurrentKif(files, 0);
+        try {
+          const files = await loadKifFiles(last);
+          if (files.length > 0) {
+            setKifFiles(files);
+            loadCurrentKif(files, 0);
+          }
+        } catch (error) {
+          setStatusMessage(`前回のフォルダを復元できませんでした: ${String(error)}`);
         }
       }
     })();
@@ -123,7 +157,7 @@ export default function Player() {
       const path = await selectFolder();
       if (!path) return;
       setFolderPath(path);
-      saveLastFolder(path);
+      await saveLastFolder(path);
       const files = await loadKifFiles(path);
       setKifFiles(files);
       setCurrentIndex(0);
@@ -150,14 +184,19 @@ export default function Player() {
       const fileList = e.target.files;
       if (!fileList) return;
       const files: KifFile[] = [];
+      let dirName: string | null = null;
       for (let i = 0; i < fileList.length; i++) {
         const f = fileList[i];
+        if (dirName === null && f.webkitRelativePath) {
+          dirName = f.webkitRelativePath.split("/")[0];
+        }
         if (/\.kif$/i.test(f.name)) {
           const buf = await f.arrayBuffer();
           const content = decodeText(new Uint8Array(buf));
           files.push({ name: f.name, content });
         }
       }
+      if (dirName) setFolderPath(dirName);
       files.sort((a, b) => a.name.localeCompare(b.name));
       setKifFiles(files);
       setCurrentIndex(0);
@@ -247,7 +286,7 @@ export default function Player() {
     <div className="player-shell">
       <div className="top-row">
         <section className="hero-card">
-          <div className="hero-actions hero-actions-compact">
+          <div className="hero-actions">
             <button className="primary-button" onClick={handleSelectFolder}>
               ディレクトリを開く
             </button>
@@ -309,17 +348,6 @@ export default function Player() {
                 <span className="shortcut">F</span>
                 {showBoard ? "盤面を隠す" : "盤面を表示"}
               </button>
-            </div>
-
-            <div className="shortcuts-help">
-              <p>
-                <kbd>Space</kbd>/<kbd>→</kbd> 次の問題
-                <kbd>←</kbd> 前の問題
-                <kbd>A</kbd> 攻め方
-                <kbd>S</kbd> 玉方
-                <kbd>D</kbd> 持ち駒
-                <kbd>F</kbd> 盤面表示
-              </p>
             </div>
           </section>
 
