@@ -15,7 +15,6 @@
         "title": "詰将棋読み上げ",
         "minWidth": 500,
         "minHeight": 300,
-        "resizable": true,
         "fullscreen": false
       }
     ],

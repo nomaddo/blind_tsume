@@ -35,6 +35,8 @@ const CELL = 48;
 const MARGIN_TOP = 28;   // 段番号用
 const MARGIN_LEFT = 28;
 const MARGIN_RIGHT = 28; // 筋番号用
+const PIECE_FONT_SIZE = CELL * 0.62;
+const PIECE_VERTICAL_OFFSET = 4;
 
 interface Props {
     position: ImmutablePosition;
@@ -42,11 +44,9 @@ interface Props {
 
 function HandLabel({
     hand,
-    label,
     color,
 }: {
     hand: ReturnType<ImmutablePosition["hand"]>;
-    label: string;
     color: string;
 }) {
     const items = HAND_ORDER.map((t) => ({ type: t, count: hand.count(t) })).filter(
@@ -54,8 +54,7 @@ function HandLabel({
     );
 
     return (
-        <div style={{ fontSize: 13, color, margin: "4px 0" }}>
-            {label}：
+        <div style={{ fontSize: 10, color, margin: "2px 0" }}>
             {items.length === 0
                 ? "なし"
                 : items.map(({ type, count }) => (
@@ -104,19 +103,22 @@ export default function BoardSvg({ position }: Props) {
                 const centerY = cy + CELL / 2;
 
                 cells.push(
-                    <text
+                    <g
                         key={`piece-${x}-${y}`}
-                        x={centerX}
-                        y={centerY}
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        fontSize={CELL * 0.62}
-                        fill={fill}
-                        fontFamily="serif"
-                        transform={isWhite ? `rotate(180,${centerX},${centerY})` : undefined}
+                        transform={`translate(${centerX},${centerY})${isWhite ? " rotate(180)" : ""}`}
                     >
-                        {char}
-                    </text>,
+                        <text
+                            x={0}
+                            y={PIECE_VERTICAL_OFFSET}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            fontSize={PIECE_FONT_SIZE}
+                            fill={fill}
+                            fontFamily="serif"
+                        >
+                            {char}
+                        </text>
+                    </g>,
                 );
             }
         }
@@ -159,7 +161,6 @@ export default function BoardSvg({ position }: Props) {
         <div className="board-figure">
             <HandLabel
                 hand={position.hand(Color.WHITE)}
-                label="玉方持ち駒"
                 color="#888"
             />
             <svg
@@ -174,7 +175,6 @@ export default function BoardSvg({ position }: Props) {
             </svg>
             <HandLabel
                 hand={position.hand(Color.BLACK)}
-                label="攻め方持ち駒"
                 color="#333"
             />
         </div>
